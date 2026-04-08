@@ -64,9 +64,46 @@ class GameEngine {
     this._startTurn();
   }
 
+  handleSubmission(socketId, word, turnId) {
+    if (this.destroyed)                          return;
+    if (!this.turnActive)                        return;
+    if (turnId !== this.currentTurnId)           return;
+    if (socketId !== this._getCurrentPlayerId()) return;
+
+    const normalized = word.toLowerCase().trim();
+    const result     = this.validator.validate(normalized, this.currentCombo, this.usedWords);
+
+    if (!result.valid) {
+      this._emitToPlayer(socketId, 'word_rejected', { word: normalized, reason: result.reason });
+      return;
+    }
+
+    this.turnActive = false;
+    this.timer.stop();
+
+    const player = this.gamePlayers.get(socketId);
+    this.usedWords.add(normalized);
+    this._addRecentWord(normalized, player);
+    player.wordsSubmitted++;
+    this.turnsCompleted++;
+
+    const responseMs = this.turnStartedAt ? Date.now() - this.turnStartedAt : 9999;
+    const fast       = responseMs < 3000;
+
+    this._emitToRoom('word_accepted', {
+      word:        normalized,
+      playerId:    socketId,
+      nickname:    player.nickname,
+      avatar:      player.avatar,
+      recentWords: this.recentWords,
+      fast,
+      responseMs,
+    });
+
+    this._scheduleNextTurn(WORD_ACCEPTED_DELAY_MS);
+  }
 
 
-  
   // ─────────────────────────────────────────────── private ───
 
   _startTurn() {
