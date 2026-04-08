@@ -103,6 +103,60 @@ class GameEngine {
     this._scheduleNextTurn(WORD_ACCEPTED_DELAY_MS);
   }
 
+  handlePlayerDisconnect(socketId) {
+    if (this.destroyed) return;
+    const player = this.gamePlayers.get(socketId);
+    if (!player || player.isEliminated) return;
+    player.isConnected = false;
+    const wasTheirTurn = this.turnActive && socketId === this._getCurrentPlayerId();
+    if (wasTheirTurn) { this.turnActive = false; this.timer.stop(); this.turnsCompleted++; this._scheduleNextTurn(BOMB_EXPLODE_DELAY_MS); }
+  }
+
+  handlePlayerReconnect(oldSocketId, newSocketId) {
+    if (this.destroyed) return;
+    const player = this.gamePlayers.get(oldSocketId);
+    if (!player) return;
+    player.id          = newSocketId;
+    player.isConnected = true;
+    this.gamePlayers.delete(oldSocketId);
+    this.gamePlayers.set(newSocketId, player);
+    const idx = this.turnOrder.indexOf(oldSocketId);
+    if (idx !== -1) this.turnOrder[idx] = newSocketId;
+  }
+
+  eliminateDisconnected(socketId) {
+    if (this.destroyed) return;
+    const player = this.gamePlayers.get(socketId);
+    if (!player || player.isEliminated) return;
+    player.lives        = 0;
+    player.isEliminated = true;
+    this._emitToRoom('player_eliminated', { playerId: socketId, nickname: player.nickname, reason: 'disconnected' });
+    const winner = this._checkWinCondition();
+    if (winner) { this._endGame(winner); return; }
+    const wasTheirTurn = this.turnActive && socketId === this._getCurrentPlayerId();
+    if (wasTheirTurn) { this.turnActive = false; this.timer.stop(); this.turnsCompleted++; this._scheduleNextTurn(0); }
+  }
+
+  getStateSnapshot() {
+    return {
+      players:         this._serializePlayers(),
+      currentPlayerId: this._getCurrentPlayerId(),
+      combo:           this.currentCombo,
+      turnId:          this.currentTurnId,
+      timeLeft:        this.timer.getTimeLeft(),
+      turnsCompleted:  this.turnsCompleted,
+      recentWords:     this.recentWords,
+      settings:        this.settings,
+    };
+  }
+
+  destroy() {
+    this.destroyed  = true;
+    this.turnActive = false;
+    this.timer.stop();
+    this.gamePlayers.clear();
+    this.usedWords.clear();
+  }
 
   // ─────────────────────────────────────────────── private ───
 
@@ -135,7 +189,74 @@ class GameEngine {
     );
   }
 
+  _handleTimeout() {
+    if (this.destroyed || !this.turnActive) return;
+    this.turnActive = false;
+
+    const playerId = this._getCurrentPlayerId();
+    const player   = playerId ? this.gamePlayers.get(playerId) : null;
+
+    if (!player || player.isEliminated) { this.turnsCompleted++; this._scheduleNextTurn(BOMB_EXPLODE_DELAY_MS); return; }
+
+    player.lives--;
+    const isEliminated = player.lives <= 0;
+    if (isEliminated) player.isEliminated = true;
+    this.turnsCompleted++;
+
+    this._emitToRoom('bomb_exploded', { playerId, nickname: player.nickname, avatar: player.avatar, livesLeft: player.lives, isEliminated });
+    if (isEliminated) this._emitToRoom('player_eliminated', { playerId, nickname: player.nickname, reason: 'timeout' });
+
+    const winner = this._checkWinCondition();
+    if (winner) { setTimeout(() => this._endGame(winner), BOMB_EXPLODE_DELAY_MS); return; }
+    this._scheduleNextTurn(BOMB_EXPLODE_DELAY_MS);
+  }
+
+  _scheduleNextTurn(delayMs) {
+    if (this.destroyed) return;
+    setTimeout(() => { if (this.destroyed) return; this._advanceIndex(); this._startTurn(); }, delayMs);
+  }
+
+  _advanceIndex() {
+    let attempts = 0;
+    do {
+      this.turnIndex = (this.turnIndex + 1) % this.turnOrder.length;
+      attempts++;
+    } while (attempts < this.turnOrder.length && this._isPlayerEliminated(this.turnOrder[this.turnIndex]));
+  }
+
+  _getCurrentPlayerId()       { return this.turnOrder[this.turnIndex] || null; }
+  _isPlayerEliminated(id)     { const p = this.gamePlayers.get(id); return !p || p.isEliminated; }
+  _getAlivePlayers()          { return [...this.gamePlayers.values()].filter(p => !p.isEliminated); }
+  _checkWinCondition()        { const a = this._getAlivePlayers(); return a.length <= 1 ? (a[0] ?? null) : null; }
+
+  _endGame(winner) {
+    this.destroyed  = true;
+    this.turnActive = false;
+    this.timer.stop();
+    if (this.onGameOver) { try { this.onGameOver(); } catch(e) { console.error('[GameEngine] onGameOver:', e); } }
+
+    this._emitToRoom('game_over', {
+      winnerId:       winner?.id       ?? null,
+      winnerNickname: winner?.nickname ?? null,
+      stats: { totalTurns: this.turnsCompleted, uniqueWordsUsed: this.usedWords.size, players: this._serializePlayers() },
+    });
+  }
+
+  _addRecentWord(word, player) {
+    this.recentWords.unshift({ word, nickname: player.nickname, playerId: player.id, avatar: player.avatar });
+    if (this.recentWords.length > RECENT_WORDS_FEED_SIZE) this.recentWords.pop();
+  }
+
+  _serializePlayers() {
+    return [...this.gamePlayers.values()].map(p => ({
+      id: p.id, nickname: p.nickname, avatar: p.avatar,
+      lives: p.lives, wordsSubmitted: p.wordsSubmitted,
+      isEliminated: p.isEliminated, isConnected: p.isConnected,
+    }));
+  }
+
+  _emitToRoom(event, data)             { this.io.to(this.roomCode).emit(event, data); }
+  _emitToPlayer(socketId, event, data) { this.io.to(socketId).emit(event, data); }
 }
 
-
-
+module.exports = GameEngine;

@@ -13,4 +13,6 @@ module.exports = Object.freeze({
  COMBO_EASY_MIN_MATCHES: 12,
  COMBO_MEDIUM_MIN_MATCHES: 6,
  COMBO_HARD_MIN_MATCHES: 3,
+
+ RECENT_WORDS_FEED_SIZE:        5,
 });
