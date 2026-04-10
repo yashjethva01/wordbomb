@@ -15,6 +15,8 @@ const app = createApp();
 // Load dictionary synchronously at startup so every room uses the same Set.
 loadDictionary();
 
+initSocketIO(httpServer, CLIENT_URL);
+
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
