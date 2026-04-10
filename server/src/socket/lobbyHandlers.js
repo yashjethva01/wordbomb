@@ -1,7 +1,7 @@
 'use strict';
 
 const roomManager      = require('../managers/RoomManager');
-const reconnectHandler = require('../managers/ReconnectHandler');
+
 const { emitToRoom, emitToRoomExcept, emitError, sanitizeString } = require('./socketHelpers');
 const { MIN_PLAYERS_TO_START } = require('../config/constants');
 
