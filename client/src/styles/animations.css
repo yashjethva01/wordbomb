@@ -1,35 +1,135 @@
-@keyframes bombFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
+/* ── Page entry ───────────────────────────────────── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; } to { opacity:1; }
+}
+@keyframes scaleIn {
+  from { opacity:0; transform:scale(0.86) translateY(12px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity:0; transform:translateX(18px); }
+  to   { opacity:1; transform:translateX(0); }
 }
 
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  20%,
-  60% {
-    transform: translateX(-6px);
-  }
-  40%,
-  80% {
-    transform: translateX(6px);
-  }
+/* ── Bomb ────────────────────────────────────────── */
+@keyframes bombFloat {
+  0%,100% { transform:translateY(0px) rotate(-1.5deg); }
+  50%     { transform:translateY(-12px) rotate(1.5deg); }
+}
+@keyframes bombUrgent {
+  0%,100% { transform:translateX(0) rotate(0deg); }
+  20%     { transform:translateX(-7px) rotate(-3deg); }
+  40%     { transform:translateX(7px) rotate(3deg); }
+  60%     { transform:translateX(-5px) rotate(-2deg); }
+  80%     { transform:translateX(5px) rotate(2deg); }
+}
+@keyframes bombExplode {
+  0%   { transform:scale(1) rotate(0deg); opacity:1; }
+  30%  { transform:scale(1.45) rotate(-6deg); opacity:0.9; }
+  65%  { transform:scale(0.6) rotate(12deg); opacity:0.5; }
+  100% { transform:scale(0.1) rotate(-5deg); opacity:0; }
+}
+@keyframes fuseFlicker {
+  0%,100% { opacity:1; transform:scale(1); }
+  33%     { opacity:0.55; transform:scale(1.5); }
+  66%     { opacity:0.85; transform:scale(0.8); }
+}
+@keyframes sparkFloat {
+  0%   { transform:translate(0,0) scale(1); opacity:0.9; }
+  100% { transform:translate(var(--sx),var(--sy)) scale(0); opacity:0; }
+}
+@keyframes glowPulse {
+  0%,100% { opacity:0.45; transform:scale(1); }
+  50%     { opacity:0.90; transform:scale(1.14); }
+}
+@keyframes glowPulseFast {
+  0%,100% { opacity:0.60; transform:scale(1); }
+  50%     { opacity:1.00; transform:scale(1.18); }
+}
+
+/* ── Combo prompt ────────────────────────────────── */
+@keyframes comboPulse {
+  0%,100% { opacity:1; }
+  50%     { opacity:0.74; }
+}
+@keyframes comboReveal {
+  from { opacity:0; transform:scale(0.55) translateY(14px); letter-spacing:0.04em; }
+  to   { opacity:1; transform:scale(1) translateY(0); letter-spacing:0.22em; }
+}
+
+/* ── Input feedback ──────────────────────────────── */
+@keyframes shakeInput {
+  0%,100% { transform:translateX(0); }
+  14%     { transform:translateX(-9px); }
+  28%     { transform:translateX(8px); }
+  42%     { transform:translateX(-6px); }
+  57%     { transform:translateX(5px); }
+  71%     { transform:translateX(-3px); }
+  85%     { transform:translateX(2px); }
+}
+
+/* ── Screen flash ────────────────────────────────── */
+@keyframes flashFade {
+  0%   { opacity:1; } 100% { opacity:0; }
+}
+
+/* ── Floating reactions ──────────────────────────── */
+@keyframes floatUp {
+  0%   { opacity:0; transform:translateY(0) scale(0.5) rotate(-8deg); }
+  12%  { opacity:1; transform:translateY(-22px) scale(1.3) rotate(4deg); }
+  80%  { opacity:0.9; transform:translateY(-110px) scale(1) rotate(-2deg); }
+  100% { opacity:0; transform:translateY(-140px) scale(0.75) rotate(3deg); }
+}
+
+/* ── Toast ───────────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity:0; transform:translateX(44px) scale(0.94); }
+  to   { opacity:1; transform:translateX(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity:1; transform:translateX(0) scale(1); }
+  to   { opacity:0; transform:translateX(44px) scale(0.9); }
+}
+
+/* ── Winner ──────────────────────────────────────── */
+@keyframes winnerReveal {
+  0%   { opacity:0; transform:scale(0.4) rotate(-12deg); filter:blur(6px); }
+  60%  { opacity:1; transform:scale(1.1) rotate(2deg); filter:blur(0); }
+  80%  { transform:scale(0.96) rotate(-0.5deg); }
+  100% { transform:scale(1) rotate(0deg); }
+}
+@keyframes crownBounce {
+  0%,100% { transform:translateY(0) rotate(-4deg) scale(1); }
+  40%     { transform:translateY(-12px) rotate(4deg) scale(1.08); }
+}
+@keyframes confettiFall {
+  0%   { transform:translateY(-30px) rotateZ(0deg) rotateX(0deg); opacity:1; }
+  100% { transform:translateY(110vh) rotateZ(var(--rz,540deg)) rotateX(var(--rx,360deg)); opacity:0; }
+}
+
+/* ── Sidebar active dot ──────────────────────────── */
+@keyframes activeDotPulse {
+  0%,100% { box-shadow:0 0 0 0 currentColor; opacity:1; }
+  50%     { box-shadow:0 0 0 5px transparent; opacity:0.8; }
+}
+
+/* ── Stagger helpers ─────────────────────────────── */
+.anim-d1{animation-delay:0.08s}
+.anim-d2{animation-delay:0.16s}
+.anim-d3{animation-delay:0.26s}
+.anim-d4{animation-delay:0.38s}
+.anim-d5{animation-delay:0.52s}
+.anim-d6{animation-delay:0.68s}
+
+/* ── Smooth panel transitions ─────────────────────── */
+@keyframes panelFadeIn {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.panel-enter {
+  animation: panelFadeIn 0.3s var(--ease-out-expo) forwards;
 }

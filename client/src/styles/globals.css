@@ -1,86 +1,234 @@
-:root {
-  color-scheme: dark;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #07080f;
-  color: #f2f4ff;
-}
+@import './theme.css';
+@import './animations.css';
 
-* {
-  box-sizing: border-box;
-}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 
-html,
-body,
-#root {
-  margin: 0;
-  min-height: 100%;
+html {
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  /* Prevent iOS bounce-scroll when game is active */
+  overscroll-behavior: none;
 }
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(49, 140, 255, 0.12), transparent 35%),
-    radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.18), transparent 28%),
-    #07080f;
-  color: #edf2ff;
+  font-family:var(--font-body);
+  background-color:var(--bg-base);
+  color:var(--text-primary);
+  min-height:100dvh;
+  overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(0,229,255,0.055) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(179,71,255,0.04) 0%, transparent 60%);
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
+/* When game is active the root is exactly the viewport — no scroll */
+body.game-active {
+  overflow: hidden;
+  height: 100dvh;
+  position: fixed;
+  width: 100%;
 }
 
-button {
-  cursor: pointer;
-}
+#root { min-height:100dvh; display:flex; flex-direction:column; }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+::-webkit-scrollbar       { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border-1); border-radius:var(--r-full); }
+::-webkit-scrollbar-thumb:hover { background:var(--border-2); }
 
-img {
-  max-width: 100%;
-  display: block;
-}
+::selection { background:var(--cyan-low); color:var(--cyan-bright); }
 
-.page-center {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
+:focus-visible { outline:2px solid var(--cyan); outline-offset:3px; border-radius:var(--r-sm); }
 
+/* ── Glass card ── */
 .glass-card {
-  background: rgba(11, 15, 30, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
-  border-radius: 24px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  background:var(--bg-card);
+  border-radius:var(--r-lg);
+  border:1px solid var(--border-1);
+  backdrop-filter:blur(24px) saturate(1.4);
+  -webkit-backdrop-filter:blur(24px) saturate(1.4);
+  box-shadow:var(--shadow-card);
+  position:relative;
+  overflow:hidden;
 }
+.glass-card::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.00) 28%);
+  pointer-events:none;
+  z-index:0;
+}
+.glass-card > * { position:relative; z-index:1; }
 
+.glass-card--active {
+  border-color:var(--cyan-mid) !important;
+  box-shadow:0 2px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px var(--cyan-mid), inset 0 0 30px rgba(0,229,255,0.04), var(--shadow-card) !important;
+}
+.glass-card--my-turn {
+  border-color:var(--amber-mid) !important;
+  box-shadow:0 2px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px var(--amber-mid), inset 0 0 30px rgba(255,170,0,0.04), var(--shadow-card) !important;
+}
+.glass-card--eliminated { opacity:0.36; filter:grayscale(0.75) brightness(0.7); }
+
+/* ── Gradient border card ── */
 .gradient-border {
-  border: 1px solid transparent;
-  background-image: linear-gradient(#07080f, #07080f),
-    radial-gradient(circle at top left, rgba(79, 210, 255, 0.65), rgba(168, 85, 247, 0.7));
-  background-origin: border-box;
-  background-clip: content-box, border-box;
+  background:var(--bg-card);
+  border-radius:var(--r-lg);
+  position:relative;
+  backdrop-filter:blur(24px) saturate(1.4);
+  -webkit-backdrop-filter:blur(24px) saturate(1.4);
+  box-shadow:var(--shadow-card);
+  overflow:hidden;
 }
+.gradient-border::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(145deg, rgba(0,229,255,0.30) 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0.02) 65%, rgba(255,170,0,0.18) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+.gradient-border::after {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:35%;
+  border-radius:inherit;
+  background:linear-gradient(180deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.00) 100%);
+  pointer-events:none;
+}
+.gradient-border > * { position:relative; z-index:1; }
 
-.lobby-layout {
-  min-height: 100vh;
+/* ── Page layouts ── */
+.page-center { display:flex; align-items:center; justify-content:center; min-height:100dvh; padding:var(--sp-6); }
+
+/* ────────────────────────────────────────────────────
+   GAME LAYOUT — Desktop 3-column grid
+   The game shell is always exactly the viewport.
+   Nothing overflows. Scrolling only inside panels.
+──────────────────────────────────────────────────── */
+.game-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 420px);
-  gap: 2rem;
-  padding: 3rem;
+  grid-template-areas:
+    'statusbar statusbar statusbar'
+    'sidebar   center    feed';
+  grid-template-columns: 220px 1fr 240px;
+  grid-template-rows: auto 1fr;
+  height: 100dvh;
+  max-height: 100dvh;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  overflow: hidden;
+  position: relative;
 }
 
-@media (max-width: 900px) {
-  .lobby-layout {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
+/* ── Mobile game shell ───────────────────────────────
+   Below 700px the entire layout becomes a flex column.
+   Height is locked to 100dvh. Nothing escapes the shell.
+──────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    gap: 0;
+    padding: 6px 6px 0 6px;
+  }
+}
+
+/* Lobby pages (not game) can still scroll naturally */
+.lobby-layout {
+  max-width:800px; width:100%; margin:0 auto;
+  padding:var(--sp-8) var(--sp-6);
+  display:flex; flex-direction:column; gap:var(--sp-5);
+  min-height:100dvh;
+}
+
+/* ── Game-specific classes ── */
+.reaction-overlay { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:var(--z-overlay); }
+.reaction-emoji {
+  position:absolute; bottom:70px; font-size:2rem;
+  animation:floatUp 2.6s ease-out forwards;
+  pointer-events:none; user-select:none;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,0.25));
+}
+.screen-flash {
+  position:fixed; inset:0;
+  background:radial-gradient(ellipse at center, rgba(255,56,96,0.22) 0%, rgba(255,56,96,0.08) 60%, transparent 100%);
+  pointer-events:none; z-index:var(--z-modal);
+  animation:flashFade 0.65s ease-out forwards;
+}
+.word-feed-entry { animation:slideInRight 0.3s var(--ease-out-expo) forwards; }
+
+.word-input--rejected { animation:shakeInput 0.38s ease !important; border-color:var(--red) !important; box-shadow:0 0 0 2px var(--red-mid), var(--red-glow) !important; }
+.word-input--accepted { border-color:var(--green) !important; box-shadow:0 0 0 2px var(--green-mid), var(--green-glow) !important; }
+
+.timer-ring { transition:stroke 0.6s ease, stroke-dashoffset 1s linear; }
+.timer-ring--normal   { stroke:var(--green); }
+.timer-ring--warning  { stroke:var(--amber); }
+.timer-ring--critical { stroke:var(--red); filter:drop-shadow(0 0 5px rgba(255,56,96,0.7)); }
+
+.combo-text { font-family:var(--font-display); letter-spacing:0.20em; animation:comboPulse 2.2s ease-in-out infinite; }
+
+.toast-container {
+  position:fixed;
+  bottom: 20px;
+  right:  20px;
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+  z-index:var(--z-toast);
+  pointer-events:none;
+  max-width:340px;
+  /* Stack newest on top */
+}
+/* Mobile: full width near bottom */
+@media (max-width: 500px) {
+  .toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
+.toast-item { pointer-events:auto; }
+
+.confetti-particle { position:absolute; animation:confettiFall linear forwards; }
+.heat-fill { transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1); border-radius:var(--r-full); }
+.active-dot { animation:activeDotPulse 1.4s ease-in-out infinite; }
+.divider { height:1px; background:linear-gradient(90deg, transparent, var(--border-1), transparent); border:none; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border-width:0; }
+
+/* ── Mobile player strip (horizontal scrollable) ── */
+.player-strip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 2px;
+  flex-shrink: 0;
+}
+.player-strip::-webkit-scrollbar { display: none; }
+
+/* ── iOS safe area ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 700px) {
+    .game-input-bar {
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
   }
 }
