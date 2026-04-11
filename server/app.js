@@ -1,26 +1,20 @@
 'use strict';
 
 const express = require('express');
-const cors = require('cors');
+const cors    = require('cors');
 
-function createApp() {
+function createApp(clientUrl) {
   const app = express();
 
-  // Middleware
-  app.use(cors());
+  app.use(cors({ origin: clientUrl, credentials: true }));
   app.use(express.json());
 
-  // Health check endpoint
-  app.get('/health', (req, res) => {
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString()
-    });
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // 404 catch-all middleware
-  app.use((req, res) => {
-    res.status(404).json({ error: 'Not Found' });
+  app.use((_req, res) => {
+    res.status(404).json({ error: 'Not found' });
   });
 
   return app;
