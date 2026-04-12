@@ -46,7 +46,7 @@ export function useSocket() {
     let initialConnectDone = false;
 
     const cleanups = [
-      // ── Connection lifecycle ────────────────────────────────────────
+      // ── Connection lifecycle ──
       socketService.on('connect', () => {
         dispatch({ type: 'SOCKET_CONNECTED', payload: { socketId: socket.id } });
 
@@ -83,7 +83,7 @@ export function useSocket() {
         dispatch({ type: 'ADD_TOAST', payload: { type: 'error', message: 'Could not reconnect. Please refresh.' } });
       }),
 
-      // ── Room entry ─────────────────────────────────────────────────
+      // ── Room entry ───────────
       socketService.on('room_created', (payload) => {
         const nickname = payload.roomState.players.find(p => p.id === payload.yourId)?.nickname ?? '';
         localStorage.setItem('wb_nickname', nickname);
@@ -112,7 +112,7 @@ export function useSocket() {
         }
       }),
 
-      // ── Lobby events ───────────────────────────────────────────────
+      // ── Lobby events ─────────
       socketService.on('player_joined', (payload) => {
         dispatch({ type: 'PLAYER_JOINED', payload });
       }),
@@ -131,7 +131,7 @@ export function useSocket() {
         dispatch({ type: 'ADD_TOAST', payload: { type: 'info', message: `${payload.newHostNickname} is now the host` } });
       }),
 
-      // ── Reconnect ID re-key ────────────────────────────────────────
+      // ── Reconnect ID re-key ──
       socketService.on('player_reconnected', (payload) => {
         dispatch({ type: 'PLAYER_RECONNECTED', payload });
         dispatch({ type: 'ADD_TOAST', payload: { type: 'info', message: `${payload.nickname} reconnected` } });
@@ -143,7 +143,7 @@ export function useSocket() {
         }
       }),
 
-      // ── Game events ────────────────────────────────────────────────
+      // ── Game events ──────────
       socketService.on('game_started', (payload) => {
         dispatch({ type: 'GAME_STARTED', payload });
         const roomCode = localStorage.getItem('wb_roomCode');
@@ -176,7 +176,7 @@ export function useSocket() {
         navigate(`/lobby/${payload.roomState.code}`);
       }),
 
-      // ── Full state restore (reconnect / refresh) ───────────────────
+      // ── Full state restore (reconnect / refresh) 
       socketService.on('game_state_restored', (payload) => {
         dispatch({ type: 'STATE_RESTORED', payload });
         const phase = payload.roomState?.phase;
