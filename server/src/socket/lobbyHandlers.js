@@ -96,7 +96,30 @@ function registerLobbyHandlers(socket, io) {
     if (allReady) emitToRoom(io, roomCode, 'all_players_ready', {});
   });
 
-   // ── leave_room ─────────────────────────────────────────────────────
+  // ── start_game ─────────────────────────────────────────────────────
+  socket.on('start_game', () => {
+    const roomCode = socket.roomCode;
+    if (!roomCode) return;
+    const room = roomManager.getRoom(roomCode);
+    if (!room) return;
+
+    if (room.hostId !== socket.id) return emitError(socket, 'NOT_HOST', 'Only the host can start the game');
+    if (room.phase !== 'lobby')    return emitError(socket, 'ALREADY_STARTED', 'Game already in progress');
+
+    const connected = [...room.players.values()].filter(p => p.isConnected);
+    if (connected.length < MIN_PLAYERS_TO_START) {
+      return emitError(socket, 'NOT_ENOUGH_PLAYERS', `Need at least ${MIN_PLAYERS_TO_START} players`);
+    }
+    if (connected.some(p => !p.isReady)) {
+      return emitError(socket, 'PLAYERS_NOT_READY', 'Not all players are ready');
+    }
+
+    const startResult = roomManager.startGame(roomCode, io);
+    if (!startResult.ok) return emitError(socket, 'START_FAILED', startResult.error);
+    console.log(`[Lobby] Game started in ${roomCode}`);
+  });
+
+  // ── leave_room ─────────────────────────────────────────────────────
   socket.on('leave_room', () => { handleLeaveOrDisconnect(socket, io, false); });
 }
 
