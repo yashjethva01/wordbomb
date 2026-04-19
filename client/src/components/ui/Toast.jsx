@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useGameState } from '../../hooks/useGameState';
 
-// Duration per toast type — short enough to be non-intrusive
+// Auto-hide time (ms) for each toast type.
 const DURATIONS = { success: 2200, info: 2500, warn: 3200, error: 4500 };
-// Never show more than N toasts at once (oldest auto-removed)
+// Maximum number of visible toasts at one time.
 const MAX_TOASTS = 3;
 
 const ICONS  = { success:'✓', error:'✕', warn:'⚠', info:'ℹ' };
@@ -23,7 +23,7 @@ function ToastItem({ toast, onRemove }) {
     setTimeout(() => onRemove(toast.id), 260);
   }, [toast.id, onRemove]);
 
-  // Auto-dismiss
+  // Automatically dismiss this toast after its timeout.
   useEffect(() => {
     const t = setTimeout(dismiss, duration);
     return () => clearTimeout(t);
@@ -80,7 +80,7 @@ export default function Toast() {
   const { state, dispatch } = useGameState();
   const remove = useCallback((id) => dispatch({ type: 'REMOVE_TOAST', payload: { id } }), [dispatch]);
 
-  // Keep at most MAX_TOASTS — auto-remove oldest
+  // Keep only the newest MAX_TOASTS items.
   const toasts = state.toasts.slice(-MAX_TOASTS);
 
   if (!toasts.length) return null;

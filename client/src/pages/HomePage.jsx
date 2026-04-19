@@ -28,7 +28,7 @@ export default function HomePage() {
     if (codeFromUrl) { setMode('join'); setRoomCode(codeFromUrl.toUpperCase()); }
   }, [codeFromUrl]);
 
-  // Surface avatar conflict errors from the server
+  // Show avatar conflict errors returned by the server.
   useEffect(() => {
     if (state.avatarError) {
       setAvatarErr(state.avatarError);
@@ -63,21 +63,21 @@ export default function HomePage() {
 
   return (
     <div className="page-center" style={{ flexDirection:'column', position:'relative', overflow:'hidden', alignItems:'center' }}>
-      {/* Ambient orbs */}
+      {/* Background glow effects */}
       <div style={{ position:'fixed', inset:0, overflow:'hidden', pointerEvents:'none', zIndex:0 }}>
         <div style={{ position:'absolute', top:'-80px', left:'50%', transform:'translateX(-50%)', width:'600px', height:'600px', borderRadius:'50%', background:'radial-gradient(circle,rgba(0,229,255,0.07) 0%,transparent 70%)', filter:'blur(10px)' }} />
         <div style={{ position:'absolute', bottom:'-100px', right:'-80px', width:'500px', height:'500px', borderRadius:'50%', background:'radial-gradient(circle,rgba(179,71,255,0.06) 0%,transparent 70%)', filter:'blur(10px)' }} />
       </div>
 
       <div className="gradient-border" style={{ padding:'clamp(28px,4vw,48px) clamp(20px,4vw,44px)', width:'100%', maxWidth:'500px', zIndex:1, animation:'fadeInUp 0.5s var(--ease-out-expo)', marginTop:'var(--sp-6)' }}>
-        {/* Header */}
+        {/* Hero title */}
         <div style={{ textAlign:'center', marginBottom:'32px' }}>
           <div style={{ fontSize:'58px', lineHeight:1, marginBottom:'8px', animation:'bombFloat 3.5s ease-in-out infinite', filter:'drop-shadow(0 12px 24px rgba(0,0,0,0.55))' }}>💣</div>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(40px,9vw,58px)', letterSpacing:'0.06em', color:'var(--text-primary)', lineHeight:0.95, marginBottom:'8px' }}>WORDBOMB</h1>
           <p style={{ fontSize:'13px', color:'var(--text-secondary)', fontFamily:'var(--font-body)' }}>Type fast. Don't explode. Last one standing wins.</p>
         </div>
 
-        {/* Connection */}
+        {/* Server connection status */}
         <div style={{ display:'flex', alignItems:'center', gap:'8px', justifyContent:'center', marginBottom:'24px' }}>
           <div style={{ width:'7px', height:'7px', borderRadius:'50%', background: state.connected ? 'var(--green)' : 'var(--amber)', boxShadow: state.connected ? 'var(--green-glow)' : 'var(--amber-glow-sm)', flexShrink:0 }} />
           <span style={{ fontSize:'11px', fontFamily:'var(--font-heading)', fontWeight:600, letterSpacing:'0.10em', textTransform:'uppercase', color: state.connected ? 'var(--text-muted)' : 'var(--amber)' }}>
@@ -85,17 +85,17 @@ export default function HomePage() {
           </span>
         </div>
 
-        {/* Nickname */}
+        {/* Nickname field */}
         <div style={{ marginBottom:'16px' }}>
           <Input label="Your Nickname" placeholder="Enter a name…" value={nickname} onChange={e => { setNickname(e.target.value); setNicknameErr(''); }} onKeyDown={onNameKey} error={nicknameErr} maxLength={20} autoFocus />
         </div>
 
-        {/* Avatar picker */}
+        {/* Avatar selection */}
         <div style={{ marginBottom:'20px', padding:'14px', background:'var(--glass-1)', borderRadius:'var(--r-lg)', border:'1px solid var(--border-0)' }}>
           <AvatarPicker selected={avatar} takenIds={[]} onSelect={id => { setAvatar(id); setAvatarErr(''); }} error={avatarErr} />
         </div>
 
-        {/* Mode panels */}
+        {/* Create or join mode actions */}
         {mode === 'home' && (
           <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
             <Button variant="secondary" size="sm" fullWidth onClick={() => setMode('create')} style={{ marginBottom:'4px' }}>
@@ -124,7 +124,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Tags */}
+        {/* Feature tags */}
         <div style={{ marginTop:'24px', paddingTop:'20px', borderTop:'1px solid var(--border-0)', display:'flex', gap:'8px', justifyContent:'center', flexWrap:'wrap' }}>
           {[{icon:'❤️',label:'Configurable lives'},{icon:'⚡',label:'Real-time'},{icon:'🎭',label:'16 avatars'}].map(({icon,label}) => (
             <span key={label} style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'12px', color:'var(--text-muted)', fontFamily:'var(--font-body)', padding:'4px 10px', background:'var(--glass-1)', border:'1px solid var(--border-0)', borderRadius:'var(--r-full)' }}>

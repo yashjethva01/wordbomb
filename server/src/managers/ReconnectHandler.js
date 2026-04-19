@@ -4,16 +4,14 @@ const { RECONNECT_GRACE_WINDOW_MS } = require('../config/constants');
 const roomManager = require('./RoomManager');
 
 /**
- * ReconnectHandler manages 30-second grace windows.
+ * Manages temporary disconnect grace windows for players.
  *
- * Key: `${nickname.toLowerCase()}:${roomCode}`
+ * Storage key format: `${nickname.toLowerCase()}:${roomCode}`
  *
- * Bug-proofing notes:
- *  - startGracePeriod always cancels any existing period first (idempotent)
- *  - handleReconnect is guarded: if the player is already in the room with
- *    the new socket ID (e.g. double-fire), it returns ok=true safely.
- *  - removePlayer called by grace expiry only after re-checking that the
- *    player is still marked as disconnected.
+ * Safety behavior:
+ * - Starting a grace period always clears an older one first.
+ * - Reconnect flow is guarded against duplicate join events.
+ * - A player is removed on timeout only if still disconnected.
  */
 class ReconnectHandler {
   constructor() {
@@ -26,11 +24,17 @@ class ReconnectHandler {
   }
 
   /**
-   * Start a grace period. Cancels any existing one for the same key first.
+    * Starts a reconnect grace period for a disconnected player.
+    * Cancels any existing grace period for the same player first.
+    *
+    * @param {string} nickname Player nickname.
+    * @param {string} roomCode Room code.
+    * @param {string} socketId Disconnected socket id.
+    * @param {import('socket.io').Server} io Socket.IO server instance.
    */
   startGracePeriod(nickname, roomCode, socketId, io) {
     const key = this._key(nickname, roomCode);
-    this.cancelGracePeriod(nickname, roomCode);   // always idempotent
+    this.cancelGracePeriod(nickname, roomCode); // Safe to call repeatedly.
 
     const timer = setTimeout(() => {
       this.gracePeriods.delete(key);
@@ -38,12 +42,11 @@ class ReconnectHandler {
       const room = roomManager.getRoom(roomCode);
       if (!room) return;
 
-      // Only remove if the player is still marked as disconnected.
-      // If they reconnected successfully, their socketId was already swapped
-      // and they would not be found under the old socketId.
+      // Remove only if the player is still disconnected.
+      // Reconnected players are already remapped to a new socket id.
       const player = room.players.get(socketId);
       if (!player || player.isConnected) {
-        // Player already reconnected — nothing to do
+        // Player already reconnected.
         return;
       }
 
@@ -74,24 +77,26 @@ class ReconnectHandler {
   }
 
   /**
-   * Full reconnect flow:
-   *  1. Cancel grace period
-   *  2. Swap socket IDs in room.players
-   *  3. Notify game engine
-   *  4. Re-emit full state to reconnected socket
+    * Runs the full reconnect flow:
+   * 1. Cancel grace period.
+   * 2. Swap player socket id in room state.
+   * 3. Notify game engine about id change.
+   * 4. Send the restored state to the reconnected client.
    *
+    * @param {import('socket.io').Socket} socket Reconnected socket.
+    * @param {string} nickname Player nickname.
+    * @param {string} roomCode Room code.
    * @returns {{ ok: boolean, error?: string }}
    */
   handleReconnect(socket, nickname, roomCode) {
     const oldSocketId = this.getGracePeriodSocketId(nickname, roomCode);
     if (!oldSocketId) {
-      // Check if the player is already in the room with a current socket
-      // (double-fire protection — client sent join_room twice)
+      // Guard against duplicate join_room events.
       const room = roomManager.getRoom(roomCode);
       if (room) {
         const existingPlayer = roomManager.findPlayerByNickname(roomCode, nickname);
         if (existingPlayer && existingPlayer.id === socket.id && existingPlayer.isConnected) {
-          // Already correctly in the room — just re-send state
+          // Player is already restored, so send current state again.
           const payload = { roomState: roomManager.serializeRoom(room), yourId: socket.id };
           if (room.phase === 'game' && room.engine) payload.gameState = room.engine.getStateSnapshot();
           socket.emit('game_state_restored', payload);
@@ -108,7 +113,7 @@ class ReconnectHandler {
 
     const newSocketId = socket.id;
 
-    // Guard: if old and new ID are the same (shouldn't happen but be safe)
+    // Extra guard in case old and new socket ids match.
     if (oldSocketId !== newSocketId) {
       const player = room.players.get(oldSocketId);
       if (player) {

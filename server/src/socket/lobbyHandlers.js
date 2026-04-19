@@ -7,13 +7,13 @@ const { MIN_PLAYERS_TO_START } = require('../config/constants');
 
 function registerLobbyHandlers(socket, io) {
 
-  // ── create_room ────────────────────────────────────────────────────
+  // Create a new room.
   socket.on('create_room', ({ nickname, avatar, settings } = {}) => {
     const cleanNickname = sanitizeString(nickname, 20);
     if (!cleanNickname) return emitError(socket, 'INVALID_NICKNAME', 'Nickname must be 1–20 characters');
     if (!/^[a-zA-Z0-9 _-]+$/.test(cleanNickname)) return emitError(socket, 'INVALID_NICKNAME', 'Nickname contains invalid characters');
 
-    // Prevent double-room if socket is already in one
+    // If this socket already has a room, return that room state.
     if (socket.roomCode) {
       const existing = roomManager.getRoom(socket.roomCode);
       if (existing) {
@@ -30,7 +30,7 @@ function registerLobbyHandlers(socket, io) {
     console.log(`[Lobby] Room ${room.code} created by ${cleanNickname}`);
   });
 
-  // ── join_room ──────────────────────────────────────────────────────
+  // Join an existing room.
   socket.on('join_room', ({ nickname, roomCode, avatar } = {}) => {
     const cleanNickname = sanitizeString(nickname, 20);
     const cleanCode     = sanitizeString(roomCode, 6);
@@ -41,7 +41,7 @@ function registerLobbyHandlers(socket, io) {
 
     const upperCode = cleanCode.toUpperCase();
 
-    // ── Already in this room? Re-send state (idempotent) ──────────────
+    // If already in this room, just send the latest state again.
     if (socket.roomCode === upperCode) {
       const room = roomManager.getRoom(upperCode);
       if (room) {
@@ -52,7 +52,7 @@ function registerLobbyHandlers(socket, io) {
       }
     }
 
-    // ── Active grace period? → reconnect path ─────────────────────────
+    // If grace period is active, treat this as a reconnect.
     const oldSocketId = reconnectHandler.getGracePeriodSocketId(cleanNickname, upperCode);
     if (oldSocketId) {
       const result = reconnectHandler.handleReconnect(socket, cleanNickname, upperCode);
@@ -67,7 +67,7 @@ function registerLobbyHandlers(socket, io) {
       return;
     }
 
-    // ── Normal join ───────────────────────────────────────────────────
+    // Normal join flow.
     const result = roomManager.joinRoom(socket.id, cleanNickname, upperCode, avatar);
     if (!result.ok) {
       const code = result.code === 'AVATAR_TAKEN' ? 'AVATAR_TAKEN' : 'JOIN_FAILED';
@@ -82,7 +82,7 @@ function registerLobbyHandlers(socket, io) {
     console.log(`[Lobby] ${cleanNickname} (${result.player.avatar}) joined ${upperCode}`);
   });
 
-  // ── player_ready ───────────────────────────────────────────────────
+  // Update ready state in the lobby.
   socket.on('player_ready', ({ ready } = {}) => {
     const roomCode = socket.roomCode;
     if (!roomCode) return;
@@ -96,7 +96,7 @@ function registerLobbyHandlers(socket, io) {
     if (allReady) emitToRoom(io, roomCode, 'all_players_ready', {});
   });
 
-  // ── start_game ─────────────────────────────────────────────────────
+  // Start game (host only).
   socket.on('start_game', () => {
     const roomCode = socket.roomCode;
     if (!roomCode) return;
@@ -119,7 +119,7 @@ function registerLobbyHandlers(socket, io) {
     console.log(`[Lobby] Game started in ${roomCode}`);
   });
 
-  // ── leave_room ─────────────────────────────────────────────────────
+  // Leave room request from client.
   socket.on('leave_room', () => { handleLeaveOrDisconnect(socket, io, false); });
 }
 
@@ -134,14 +134,13 @@ function handleLeaveOrDisconnect(socket, io, isDisconnect = false) {
   if (!player) return;
 
   if (isDisconnect && room.phase === 'game' && room.engine) {
-    // During game: start grace period
+    // During a live game, start grace period instead of removing instantly.
     player.isConnected    = false;
     player.disconnectedAt = Date.now();
 
     room.engine.handlePlayerDisconnect(socket.id);
 
-    // Only start grace period if one isn't already running for this player.
-    // This prevents duplicate timers if disconnect fires twice (edge case).
+    // Start only one grace timer per player to avoid duplicate timeouts.
     if (!reconnectHandler.getGracePeriodSocketId(socket.nickname, roomCode)) {
       reconnectHandler.startGracePeriod(socket.nickname, roomCode, socket.id, io);
     }
@@ -155,7 +154,7 @@ function handleLeaveOrDisconnect(socket, io, isDisconnect = false) {
     return;
   }
 
-  // Permanent leave (lobby or explicit leave_room)
+  // Permanent leave path (lobby exit or explicit leave_room).
   reconnectHandler.cancelGracePeriod(socket.nickname, roomCode);
   const { roomEmpty } = roomManager.removePlayer(socket.id, roomCode, io);
 

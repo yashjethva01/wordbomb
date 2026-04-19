@@ -17,5 +17,24 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+
+          if (id.includes('react-router-dom') || id.includes('@remix-run/router')) {
+            return 'router';
+          }
+
+          if (id.includes('socket.io-client') || id.includes('engine.io-client') || id.includes('socket.io-parser')) {
+            return 'realtime';
+          }
+
+          if (id.includes('react') || id.includes('scheduler')) {
+            return 'react-vendor';
+          }
+        },
+      },
+    },
   },
 });

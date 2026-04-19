@@ -13,23 +13,20 @@ function initSocketIO(httpServer, clientUrl) {
       credentials: true,
     },
 
-    // ── Heartbeat tuning ───────────────────────────────────────────────
-    // Generous values prevent false disconnects when the server is busy
-    // processing game events for 3+ simultaneous players.
-    pingTimeout:     60000,   // wait 60s for a pong before declaring dead
-    pingInterval:    25000,   // send ping every 25s (down from 10s)
+    // Heartbeat values are relaxed to reduce false disconnects.
+    pingTimeout:     60000,   // Wait 60s for pong before disconnecting.
+    pingInterval:    25000,   // Send ping every 25s.
     upgradeTimeout:  15000,
 
-    // Always prefer WebSocket; fall back to polling only if WS unavailable.
-    // Mixing transports mid-session triggers unnecessary reconnects.
+    // Prefer WebSocket first and keep polling as fallback.
+    // This helps avoid unnecessary reconnect cycles.
     transports:      ['websocket', 'polling'],
 
-    // Larger buffer so a burst of game events doesn't stall the connection.
-    maxHttpBufferSize: 1e6,   // 1 MB
+    // Allow a larger message burst for busy turns.
+    maxHttpBufferSize: 1e6,   // 1 MB buffer.
 
-    // Allow socket.io to reconnect at the transport layer without creating
-    // a new application-level session. The client grace-period handles app
-    // level re-association.
+    // Let transport reconnect happen without forcing a new game session.
+    // The grace-period logic handles restoring the player identity.
     connectTimeout:  45000,
   });
 

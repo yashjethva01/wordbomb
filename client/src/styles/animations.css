@@ -1,4 +1,4 @@
-/* ── Page entry ───────────────────────────────────── */
+/* Page entry animations */
 @keyframes fadeInUp {
   from { opacity:0; transform:translateY(28px); }
   to   { opacity:1; transform:translateY(0); }
@@ -15,7 +15,7 @@
   to   { opacity:1; transform:translateX(0); }
 }
 
-/* ── Bomb ────────────────────────────────────────── */
+/* Bomb animations */
 @keyframes bombFloat {
   0%,100% { transform:translateY(0px) rotate(-1.5deg); }
   50%     { transform:translateY(-12px) rotate(1.5deg); }
@@ -51,7 +51,7 @@
   50%     { opacity:1.00; transform:scale(1.18); }
 }
 
-/* ── Combo prompt ────────────────────────────────── */
+/* Combo prompt animations */
 @keyframes comboPulse {
   0%,100% { opacity:1; }
   50%     { opacity:0.74; }
@@ -61,7 +61,7 @@
   to   { opacity:1; transform:scale(1) translateY(0); letter-spacing:0.22em; }
 }
 
-/* ── Input feedback ──────────────────────────────── */
+/* Input feedback animations */
 @keyframes shakeInput {
   0%,100% { transform:translateX(0); }
   14%     { transform:translateX(-9px); }
@@ -72,12 +72,12 @@
   85%     { transform:translateX(2px); }
 }
 
-/* ── Screen flash ────────────────────────────────── */
+/* Screen flash animation */
 @keyframes flashFade {
   0%   { opacity:1; } 100% { opacity:0; }
 }
 
-/* ── Floating reactions ──────────────────────────── */
+/* Floating reaction animations */
 @keyframes floatUp {
   0%   { opacity:0; transform:translateY(0) scale(0.5) rotate(-8deg); }
   12%  { opacity:1; transform:translateY(-22px) scale(1.3) rotate(4deg); }
@@ -85,7 +85,7 @@
   100% { opacity:0; transform:translateY(-140px) scale(0.75) rotate(3deg); }
 }
 
-/* ── Toast ───────────────────────────────────────── */
+/* Toast animations */
 @keyframes toastIn {
   from { opacity:0; transform:translateX(44px) scale(0.94); }
   to   { opacity:1; transform:translateX(0) scale(1); }
@@ -95,7 +95,7 @@
   to   { opacity:0; transform:translateX(44px) scale(0.9); }
 }
 
-/* ── Winner ──────────────────────────────────────── */
+/* Winner screen animations */
 @keyframes winnerReveal {
   0%   { opacity:0; transform:scale(0.4) rotate(-12deg); filter:blur(6px); }
   60%  { opacity:1; transform:scale(1.1) rotate(2deg); filter:blur(0); }
@@ -111,13 +111,13 @@
   100% { transform:translateY(110vh) rotateZ(var(--rz,540deg)) rotateX(var(--rx,360deg)); opacity:0; }
 }
 
-/* ── Sidebar active dot ──────────────────────────── */
+/* Sidebar active-dot animation */
 @keyframes activeDotPulse {
   0%,100% { box-shadow:0 0 0 0 currentColor; opacity:1; }
   50%     { box-shadow:0 0 0 5px transparent; opacity:0.8; }
 }
 
-/* ── Stagger helpers ─────────────────────────────── */
+/* Stagger delay helpers */
 .anim-d1{animation-delay:0.08s}
 .anim-d2{animation-delay:0.16s}
 .anim-d3{animation-delay:0.26s}
@@ -125,7 +125,7 @@
 .anim-d5{animation-delay:0.52s}
 .anim-d6{animation-delay:0.68s}
 
-/* ── Smooth panel transitions ─────────────────────── */
+/* Smooth panel transition */
 @keyframes panelFadeIn {
   from { opacity:0; transform:translateY(6px); }
   to   { opacity:1; transform:translateY(0); }

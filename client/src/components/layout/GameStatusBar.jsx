@@ -12,7 +12,7 @@ export default function GameStatusBar({ compact = false }) {
     : 'linear-gradient(90deg, var(--cyan-soft), var(--cyan))';
 
   if (compact) {
-    // ── Compact mobile status bar ──────────────────────────────────────────
+    // Compact status bar for mobile screens.
     return (
       <header style={{
         flexShrink:  0,
@@ -28,19 +28,19 @@ export default function GameStatusBar({ compact = false }) {
         overflow:    'hidden',
         marginBottom:'0',
       }}>
-        {/* Logo */}
+        {/* Game title */}
         <span style={{ fontFamily:'var(--font-display)', fontSize:'16px', letterSpacing:'0.06em', color:'var(--cyan)', flexShrink:0, lineHeight:1 }}>
           WORDBOMB 💣
         </span>
 
         <div style={{ width:'1px', height:'18px', background:'var(--border-1)', flexShrink:0 }} />
 
-        {/* Alive count */}
+        {/* Number of players still alive */}
         <span style={{ fontFamily:'var(--font-heading)', fontWeight:700, fontSize:'12px', color:'var(--text-secondary)', flexShrink:0 }}>
           🧍 {alive.length}
         </span>
 
-        {/* Heat bar */}
+        {/* Streak heat bar */}
         {heatPct > 0 && (
           <>
             <span style={{ fontSize:'12px', flexShrink:0 }}>🔥</span>
@@ -50,14 +50,14 @@ export default function GameStatusBar({ compact = false }) {
           </>
         )}
 
-        {/* Streak badge */}
+        {/* Streak value */}
         {streak >= 3 && (
           <span style={{ fontFamily:'var(--font-heading)', fontWeight:700, fontSize:'11px', color: streak >= 7 ? 'var(--red-bright)' : streak >= 4 ? 'var(--amber-bright)' : 'var(--cyan)', flexShrink:0 }}>
             ×{streak}
           </span>
         )}
 
-        {/* Room code — pushed right */}
+        {/* Room code on the right */}
         {roomCode && (
           <span style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'var(--text-muted)', letterSpacing:'0.08em', marginLeft:'auto', flexShrink:0 }}>
             #{roomCode}
@@ -67,7 +67,7 @@ export default function GameStatusBar({ compact = false }) {
     );
   }
 
-  // ── Full desktop status bar ─────────────────────────────────────────────────
+  // Full desktop status bar.
   return (
     <header className="glass-card" style={{ gridArea:'statusbar', display:'flex', alignItems:'center', gap:'var(--sp-5)', padding:'10px 18px', flexWrap:'wrap', overflow:'hidden' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>

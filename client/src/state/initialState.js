@@ -9,7 +9,7 @@ const initialState = {
   currentPlayerId: null, combo: null, turnId: null, timeLeft: 0, timeLimit: 15,
 
   recentWords: [],
-  eventFeed:   [],    // live event log
+  eventFeed:   [],    // Real-time event timeline shown in the UI.
   streak: 0,
 
   lastRejection: null, bombExploding: false, avatarError: null,

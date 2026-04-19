@@ -7,16 +7,14 @@ export function useSocket() {
   const { dispatch, state } = useGameState();
   const navigate            = useNavigate();
 
-  // ── Session ref — always has the latest values without stale closure ──
-  // This is the key fix for auto-rejoin after a transport reconnect:
-  // we can't read `state` inside the socket event handlers (stale closure)
-  // but we CAN read a ref that's updated every render.
+  // Store the latest room and nickname in a ref.
+  // Event handlers can read this ref safely without stale state bugs.
   const sessionRef = useRef({
     roomCode: null,
     nickname: null,
   });
 
-  // Keep sessionRef in sync with the latest state
+  // Update the ref whenever room or nickname changes.
   useEffect(() => {
     sessionRef.current = {
       roomCode: state.roomCode,
@@ -27,31 +25,26 @@ export function useSocket() {
   useEffect(() => {
     const socket = socketService.connect();
 
-    // ── Helper: attempt to rejoin the stored session ──────────────────
-    // Called after EVERY 'connect' event. If the user has an active session
-    // (roomCode in state) the server will recognise this as a reconnect via
-    // the grace-period mechanism and restore their slot without creating a
-    // duplicate player.
+    // Rejoin the room after reconnect when we still have session data.
+    // The server handles this as a reconnect and restores the same player.
     function maybeRejoin() {
       const { roomCode, nickname } = sessionRef.current;
-      if (!roomCode || !nickname) return;       // no session → nothing to do
+      if (!roomCode || !nickname) return; // No active session.
       const avatar = localStorage.getItem('wb_avatar') ?? 'robot';
       console.log(`[useSocket] Auto-rejoin after reconnect: ${roomCode}`);
       socketService.emit('join_room', { nickname, roomCode, avatar });
     }
 
-    // Track whether the first 'connect' has been handled so we only
-    // auto-rejoin on the *second and subsequent* connect events
-    // (i.e. true transport reconnects, not the initial connection).
+    // Only auto-rejoin on reconnect, not the very first connect.
     let initialConnectDone = false;
 
     const cleanups = [
-      // ── Connection lifecycle ────────────────────────────────────────
+      // Connection lifecycle events
       socketService.on('connect', () => {
         dispatch({ type: 'SOCKET_CONNECTED', payload: { socketId: socket.id } });
 
         if (initialConnectDone) {
-          // This is a transport reconnect — auto-rejoin the room
+          // This is a reconnect, so try to restore the room session.
           maybeRejoin();
         }
         initialConnectDone = true;
@@ -59,23 +52,21 @@ export function useSocket() {
 
       socketService.on('disconnect', (reason) => {
         dispatch({ type: 'SOCKET_DISCONNECTED' });
-        // Only show toast for unintentional disconnects
+        // Show a warning only for unexpected disconnects.
         if (reason !== 'io client disconnect' && reason !== 'io server disconnect') {
           dispatch({ type: 'ADD_TOAST', payload: { type: 'warn', message: 'Connection lost — reconnecting…' } });
         }
       }),
 
-      // 'reconnect' fires on the Manager object, not the socket.
-      // We expose this via socketService.onManager.
+      // reconnect is emitted by the Socket.IO manager, not the socket.
       socketService.onManager('reconnect', (attempt) => {
         console.log(`[useSocket] Transport reconnected after ${attempt} attempt(s)`);
-        // The 'connect' handler above will call maybeRejoin(); no action needed here.
-        // We DO want to show a toast only after a confirmed reconnect.
+        // connect already handles room rejoin; only show success feedback here.
         dispatch({ type: 'ADD_TOAST', payload: { type: 'success', message: 'Reconnected!' } });
       }),
 
       socketService.onManager('reconnect_error', () => {
-        // Suppress noisy intermediate errors — only log, no toast
+        // Keep retries quiet to avoid toast spam.
         console.warn('[useSocket] Reconnect attempt failed, retrying…');
       }),
 
@@ -83,7 +74,7 @@ export function useSocket() {
         dispatch({ type: 'ADD_TOAST', payload: { type: 'error', message: 'Could not reconnect. Please refresh.' } });
       }),
 
-      // ── Room entry ─────────────────────────────────────────────────
+      // Room join/create events
       socketService.on('room_created', (payload) => {
         const nickname = payload.roomState.players.find(p => p.id === payload.yourId)?.nickname ?? '';
         localStorage.setItem('wb_nickname', nickname);
@@ -97,8 +88,7 @@ export function useSocket() {
         localStorage.setItem('wb_nickname', nickname);
         localStorage.setItem('wb_roomCode', payload.roomState.code);
         dispatch({ type: 'ROOM_JOINED', payload });
-        // Only navigate if we are NOT on the correct page already (prevents
-        // flicker when auto-rejoining after a transport reconnect)
+        // Skip navigation when already on lobby/game to avoid UI flicker.
         const targetPath = `/${payload.roomState.phase === 'game' ? 'game' : 'lobby'}/${payload.roomState.code}`;
         if (!window.location.pathname.startsWith(`/game/`) && !window.location.pathname.startsWith(`/lobby/`)) {
           navigate(`/lobby/${payload.roomState.code}`);
@@ -112,7 +102,7 @@ export function useSocket() {
         }
       }),
 
-      // ── Lobby events ───────────────────────────────────────────────
+      // Lobby updates
       socketService.on('player_joined', (payload) => {
         dispatch({ type: 'PLAYER_JOINED', payload });
       }),
@@ -131,7 +121,7 @@ export function useSocket() {
         dispatch({ type: 'ADD_TOAST', payload: { type: 'info', message: `${payload.newHostNickname} is now the host` } });
       }),
 
-      // ── Reconnect ID re-key ────────────────────────────────────────
+      // Reconnect identity updates
       socketService.on('player_reconnected', (payload) => {
         dispatch({ type: 'PLAYER_RECONNECTED', payload });
         dispatch({ type: 'ADD_TOAST', payload: { type: 'info', message: `${payload.nickname} reconnected` } });
@@ -143,7 +133,7 @@ export function useSocket() {
         }
       }),
 
-      // ── Game events ────────────────────────────────────────────────
+      // In-game events
       socketService.on('game_started', (payload) => {
         dispatch({ type: 'GAME_STARTED', payload });
         const roomCode = localStorage.getItem('wb_roomCode');
@@ -176,7 +166,7 @@ export function useSocket() {
         navigate(`/lobby/${payload.roomState.code}`);
       }),
 
-      // ── Full state restore (reconnect / refresh) ───────────────────
+      // Full state restore after reconnect or page refresh
       socketService.on('game_state_restored', (payload) => {
         dispatch({ type: 'STATE_RESTORED', payload });
         const phase = payload.roomState?.phase;

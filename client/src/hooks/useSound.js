@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 
-// ── Module-level shared state ─────────────────────────────────────────────────
-// All useSound instances share the same _muted flag and AudioContext so
-// toggling mute in any component instantly silences all sounds everywhere.
+// Shared module state.
+// Every useSound instance reads the same mute flag and audio context,
+// so changing mute in one place affects the whole app immediately.
 let _muted    = localStorage.getItem('wb_muted') === 'true';
 let _audioCtx = null;
 
@@ -28,7 +28,7 @@ function playTone(freq, type, gainVal, duration, startDelay = 0) {
     gain.gain.setValueAtTime(gainVal, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
 
-    // Track active oscillator so mute can cut sound immediately.
+    // Track active oscillators so mute can stop current sounds right away.
     _activeOscillators.add(osc);
     const cleanup = () => { _activeOscillators.delete(osc); };
     osc.onended = cleanup;
@@ -36,29 +36,27 @@ function playTone(freq, type, gainVal, duration, startDelay = 0) {
     osc.start(t);
     osc.stop(t + duration + 0.02);
 
-    // fallback cleanup in case oscillator does not fire onended
+    // Backup cleanup in case onended is not triggered.
     setTimeout(cleanup, (startDelay + duration + 0.1) * 1000);
-  } catch (_) { /* AudioContext blocked — safe to ignore */ }
+  } catch (_) { /* Browser may block AudioContext until user interaction. */ }
 }
 
-// Registry of setter functions so all mounted components re-render on toggle
+// Keep setter references so all mounted components refresh on mute toggle.
 const _setters = new Set();
 const _activeOscillators = new Set();
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function useSound() {
   const [muted, _setMuted] = useState(_muted);
 
-  // Register this component's setter so global toggle reaches it;
-  // cleanup on unmount to avoid stale sets leaking and causing noise.
+  // Register this component so global mute updates local UI state.
+  // Remove it on unmount to avoid stale references.
   useEffect(() => {
     _setters.add(_setMuted);
     return () => { _setters.delete(_setMuted); };
   }, [_setMuted]);
 
   const play = useCallback((sound) => {
-    // _muted is checked at call time (module-level), never stale
+    // _muted is module-level state, so this read is always current.
     switch (sound) {
       case 'tick':        playTone(680, 'square',   0.08, 0.07); break;
       case 'tick_urgent': playTone(900, 'square',   0.13, 0.06); break;
@@ -93,7 +91,7 @@ export function useSound() {
     _muted = !_muted;
     localStorage.setItem('wb_muted', String(_muted));
 
-    // Immediately stop any in-flight tones when muting.
+    // Stop active tones immediately when muting.
     if (_muted) {
       _activeOscillators.forEach(osc => {
         try { osc.stop(); } catch (_) {}
@@ -108,7 +106,7 @@ export function useSound() {
       }
     }
 
-    // Update all mounted instances
+    // Sync mute state to all mounted useSound consumers.
     _setters.forEach(set => { try { set(_muted); } catch (_) {} });
     return _muted;
   }, []);

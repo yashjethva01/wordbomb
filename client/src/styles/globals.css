@@ -8,6 +8,7 @@ html {
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;
+  color-scheme: dark;
   /* Prevent iOS bounce-scroll when game is active */
   overscroll-behavior: none;
 }
@@ -18,12 +19,14 @@ body {
   color:var(--text-primary);
   min-height:100dvh;
   overflow-x:hidden;
+  line-height:1.45;
+  -webkit-tap-highlight-color: transparent;
   background-image:
     radial-gradient(ellipse 90% 55% at 50% -10%, rgba(0,229,255,0.055) 0%, transparent 65%),
     radial-gradient(ellipse 60% 40% at 80% 100%, rgba(179,71,255,0.04) 0%, transparent 60%);
 }
 
-/* When game is active the root is exactly the viewport — no scroll */
+/* When game is active, lock the viewport and disable page scroll. */
 body.game-active {
   overflow: hidden;
   height: 100dvh;
@@ -32,6 +35,15 @@ body.game-active {
 }
 
 #root { min-height:100dvh; display:flex; flex-direction:column; }
+
+img, svg, canvas, video {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
 
 ::-webkit-scrollbar       { width:5px; height:5px; }
 ::-webkit-scrollbar-track { background:transparent; }
@@ -42,7 +54,16 @@ body.game-active {
 
 :focus-visible { outline:2px solid var(--cyan); outline-offset:3px; border-radius:var(--r-sm); }
 
-/* ── Glass card ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Glass card surface style */
 .glass-card {
   background:var(--bg-card);
   border-radius:var(--r-lg);
@@ -74,7 +95,7 @@ body.game-active {
 }
 .glass-card--eliminated { opacity:0.36; filter:grayscale(0.75) brightness(0.7); }
 
-/* ── Gradient border card ── */
+/* Card with gradient border */
 .gradient-border {
   background:var(--bg-card);
   border-radius:var(--r-lg);
@@ -92,6 +113,7 @@ body.game-active {
   padding:1px;
   background:linear-gradient(145deg, rgba(0,229,255,0.30) 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0.02) 65%, rgba(255,170,0,0.18) 100%);
   -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;
   mask-composite:exclude;
   pointer-events:none;
@@ -107,14 +129,11 @@ body.game-active {
 }
 .gradient-border > * { position:relative; z-index:1; }
 
-/* ── Page layouts ── */
+/* Shared page layout helpers */
 .page-center { display:flex; align-items:center; justify-content:center; min-height:100dvh; padding:var(--sp-6); }
 
-/* ────────────────────────────────────────────────────
-   GAME LAYOUT — Desktop 3-column grid
-   The game shell is always exactly the viewport.
-   Nothing overflows. Scrolling only inside panels.
-──────────────────────────────────────────────────── */
+/* Desktop game layout: fixed viewport with 3 columns.
+  Scrolling stays inside panels only. */
 .game-layout {
   display: grid;
   grid-template-areas:
@@ -130,10 +149,8 @@ body.game-active {
   position: relative;
 }
 
-/* ── Mobile game shell ───────────────────────────────
-   Below 700px the entire layout becomes a flex column.
-   Height is locked to 100dvh. Nothing escapes the shell.
-──────────────────────────────────────────────────── */
+/* Mobile game layout under 700px.
+  Uses a vertical flex shell locked to viewport height. */
 @media (max-width: 700px) {
   .game-layout {
     display: flex;
@@ -146,7 +163,7 @@ body.game-active {
   }
 }
 
-/* Lobby pages (not game) can still scroll naturally */
+/* Lobby pages can scroll normally. */
 .lobby-layout {
   max-width:800px; width:100%; margin:0 auto;
   padding:var(--sp-8) var(--sp-6);
@@ -154,7 +171,7 @@ body.game-active {
   min-height:100dvh;
 }
 
-/* ── Game-specific classes ── */
+/* Game-specific utility classes */
 .reaction-overlay { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:var(--z-overlay); }
 .reaction-emoji {
   position:absolute; bottom:70px; font-size:2rem;
@@ -190,9 +207,9 @@ body.game-active {
   z-index:var(--z-toast);
   pointer-events:none;
   max-width:340px;
-  /* Stack newest on top */
+  /* Show newest toast at the top */
 }
-/* Mobile: full width near bottom */
+/* Mobile toasts use full width near the bottom */
 @media (max-width: 500px) {
   .toast-container {
     left: 12px;
@@ -209,7 +226,7 @@ body.game-active {
 .divider { height:1px; background:linear-gradient(90deg, transparent, var(--border-1), transparent); border:none; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border-width:0; }
 
-/* ── Mobile player strip (horizontal scrollable) ── */
+/* Mobile player strip with horizontal scroll */
 .player-strip {
   display: flex;
   flex-direction: row;
@@ -224,7 +241,7 @@ body.game-active {
 }
 .player-strip::-webkit-scrollbar { display: none; }
 
-/* ── iOS safe area ── */
+/* Extra bottom padding for iOS safe area */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   @media (max-width: 700px) {
     .game-input-bar {

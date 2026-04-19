@@ -13,7 +13,7 @@ class GameEngine {
     this.io         = io;
     this.onGameOver = typeof onGameOver === 'function' ? onGameOver : null;
 
-    // Normalise settings with safe defaults
+    // Normalize room settings and apply safe defaults.
     this.settings = {
       lives:      Math.min(5, Math.max(1, parseInt(settings.lives)      || STARTING_LIVES)),
       turnTime:   Math.min(30, Math.max(5, parseInt(settings.turnTime)  || Math.round(BASE_TURN_DURATION_MS/1000))),
@@ -28,7 +28,7 @@ class GameEngine {
     this.currentCombo   = null;
     this.turnActive     = false;
     this.turnsCompleted = 0;
-    this.turnStartedAt  = null;   // for fast-answer detection
+    this.turnStartedAt  = null;   // Used to detect fast answers.
 
     this.usedWords   = new Set();
     this.recentWords = [];
@@ -53,7 +53,7 @@ class GameEngine {
     }
   }
 
-  // ─────────────────────────────────────────────── public API ───
+  // Public methods used by socket handlers and room manager.
 
   startGame() {
     this._emitToRoom('game_started', {
@@ -158,7 +158,7 @@ class GameEngine {
     this.usedWords.clear();
   }
 
-  // ─────────────────────────────────────────────── private ───
+  // Internal helpers for turn flow and game state.
 
   _startTurn() {
     if (this.destroyed) return;

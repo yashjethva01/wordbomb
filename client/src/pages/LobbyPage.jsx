@@ -43,7 +43,7 @@ export default function LobbyPage() {
       </div>
 
       <div className="lobby-layout" style={{ position:'relative', zIndex:1 }}>
-        {/* Header */}
+        {/* Lobby header */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'var(--sp-3)' }}>
           <div>
             <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,6vw,44px)', letterSpacing:'0.06em', color:'var(--text-primary)', lineHeight:0.95 }}>WORDBOMB 💣</h1>
@@ -55,12 +55,12 @@ export default function LobbyPage() {
           </div>
         </div>
 
-        {/* Room code */}
+        {/* Shareable room code */}
         <div className="glass-card" style={{ padding:'var(--sp-8)' }}>
           <RoomCodeDisplay roomCode={code ?? state.roomCode ?? '------'} />
         </div>
 
-        {/* Room settings summary */}
+        {/* Quick summary of room settings */}
         {settings.difficulty && (
           <div className="glass-card" style={{ padding:'var(--sp-4)' }}>
             <p style={{ fontSize:'10px', fontFamily:'var(--font-heading)', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:'10px' }}>Room Settings</p>
@@ -80,7 +80,7 @@ export default function LobbyPage() {
           </div>
         )}
 
-        {/* Players */}
+        {/* Player list */}
         <div className="glass-card" style={{ padding:'var(--sp-5)' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'var(--sp-4)' }}>
             <p style={{ fontSize:'11px', fontFamily:'var(--font-heading)', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--text-muted)' }}>Players</p>
@@ -98,7 +98,7 @@ export default function LobbyPage() {
           </div>
         </div>
 
-        {/* Controls */}
+        {/* Ready and start controls */}
         <div style={{ display:'flex', flexDirection:'column', gap:'var(--sp-3)' }}>
           <ReadyButton />
           {isHost
@@ -107,7 +107,7 @@ export default function LobbyPage() {
           }
         </div>
 
-        {/* Rules */}
+        {/* Simple how-to-play guide */}
         <div className="glass-card" style={{ padding:'var(--sp-5)' }}>
           <p style={{ fontSize:'10px', fontFamily:'var(--font-heading)', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:'var(--sp-4)' }}>How to Play</p>
           <div style={{ display:'flex', flexDirection:'column', gap:'var(--sp-3)' }}>

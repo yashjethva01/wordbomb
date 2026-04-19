@@ -40,7 +40,7 @@ export default function WordInput({ onPlay, compact = false }) {
 
   return (
     <div style={{ width:'100%' }}>
-      {/* Turn label (skip on compact to save space) */}
+      {/* Turn status label (hidden on compact layout) */}
       {!compact && (
         <div style={{ minHeight:'26px', marginBottom:'8px', textAlign:'center' }}>
           {isMyTurn ? (
@@ -56,7 +56,7 @@ export default function WordInput({ onPlay, compact = false }) {
         </div>
       )}
 
-      {/* Compact turn label */}
+      {/* Smaller turn label for compact layout */}
       {compact && isMyTurn && (
         <div style={{ marginBottom:'5px', textAlign:'center' }}>
           <span style={{ fontFamily:'var(--font-heading)', fontWeight:700, fontSize:'11px', letterSpacing:'0.10em', textTransform:'uppercase', color:'var(--amber)' }}>
@@ -65,7 +65,7 @@ export default function WordInput({ onPlay, compact = false }) {
         </div>
       )}
 
-      {/* Input + send button — flex row, never overflows */}
+      {/* Input and send button in one row */}
       <div style={{ display:'flex', gap:'7px', width:'100%' }}>
         <input
           ref={ref}
@@ -117,7 +117,7 @@ export default function WordInput({ onPlay, compact = false }) {
         </button>
       </div>
 
-      {/* Rejection */}
+      {/* Show latest rejection reason */}
       {state.lastRejection && (
         <div style={{ marginTop:'6px', textAlign:'center', animation:'fadeIn 0.2s ease' }}>
           <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:`${compact ? '3px 10px' : '4px 12px'}`, borderRadius:'var(--r-full)', background:'var(--red-low)', border:'1px solid var(--red-mid)', fontSize:compact ? '11px' : '13px', color:'var(--red-bright)', fontFamily:'var(--font-body)' }}>

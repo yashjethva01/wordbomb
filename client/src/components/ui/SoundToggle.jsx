@@ -1,6 +1,6 @@
 /**
- * SoundToggle — receives muted state and toggle fn as props.
- * No internal state — truth comes from useSound hook in parent.
+ * Stateless mute/unmute toggle button.
+ * Parent components provide state and handler.
  */
 export default function SoundToggle({ muted, onToggle, style: extra }) {
   return (

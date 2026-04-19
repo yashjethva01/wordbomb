@@ -165,10 +165,10 @@ export default function gameReducer(state, action) {
 
     case 'ADD_TOAST': {
       const { type = 'info', message } = action.payload;
-      // Deduplicate: skip if the same message is already showing
+      // Skip duplicate toast messages already on screen.
       if (state.toasts.some(t => t.message === message)) return state;
       const toast = { id: `t${++toastId}`, type, message };
-      // Cap at 4 — oldest dropped from front
+      // Keep up to four toasts and drop the oldest one first.
       const toasts = [...state.toasts, toast].slice(-4);
       return { ...state, toasts };
     }

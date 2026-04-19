@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Returns true when the viewport is narrower than `breakpoint` pixels.
- * Updates on resize. Used to switch between mobile and desktop layouts.
+ * Returns true when viewport width is at or below `breakpoint`.
+ *
+ * @param {number} [breakpoint=700] Width threshold in pixels.
+ * @returns {boolean} True when current viewport is considered mobile.
  */
 export function useIsMobile(breakpoint = 700) {
   const [isMobile, setIsMobile] = useState(
@@ -11,13 +13,13 @@ export function useIsMobile(breakpoint = 700) {
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth <= breakpoint);
-    // Use matchMedia for efficient listening
+    // Prefer matchMedia so updates are lightweight.
     const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
     const onchange = (e) => setIsMobile(e.matches);
     if (mq.addEventListener) {
       mq.addEventListener('change', onchange);
     } else {
-      // Fallback for older browsers
+      // Fallback path for older browsers.
       window.addEventListener('resize', handler);
     }
     return () => {

@@ -52,18 +52,18 @@ export default function WinnerPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Play win sound once + generate canvas
+  // Play victory sound once and generate the share image.
   useEffect(() => {
     if (!played.current && state.winnerId && stats) {
       played.current = true;
       setTimeout(() => play('success'), 200);
 
-      // Generate leaderboard canvas
+      // Build leaderboard canvas.
       try {
         const canvas  = generateLeaderboardCanvas(state.winnerId, state.winnerNickname, stats.players ?? [], stats);
         canvasRef.current = canvas;
 
-        // Preview image
+        // Store image preview.
         const url = canvas.toDataURL('image/png');
         setImgUrl(url);
       } catch (e) {
@@ -94,7 +94,7 @@ export default function WinnerPage() {
       const result = await shareCanvas(canvasRef.current, text);
       setShareMsg(result === 'shared' ? '🎉 Shared!' : result === 'downloaded' ? '📥 Saved to device!' : 'Copied link!');
     } else {
-      // fallback text only
+      // Fallback to text-only share.
       await navigator.clipboard?.writeText(text).catch(() => {});
       setShareMsg('Link copied!');
     }
@@ -119,7 +119,7 @@ export default function WinnerPage() {
 
       <div className="gradient-border" style={{ padding:'clamp(28px,4vw,52px) clamp(20px,4vw,44px)', maxWidth:'580px', width:'100%', zIndex:1, textAlign:'center', animation:'fadeInUp 0.5s var(--ease-out-expo)', marginTop:'var(--sp-4)' }}>
 
-        {/* Trophy */}
+        {/* Trophy icon */}
         <div style={{ fontSize: isWinner ? '72px' : '52px', marginBottom:'10px', animation:'crownBounce 2.8s ease-in-out infinite', lineHeight:1 }}>
           {isWinner ? '🏆' : '🏅'}
         </div>
@@ -128,7 +128,7 @@ export default function WinnerPage() {
           {isWinner ? '🎉 You Won!' : 'Winner'}
         </p>
 
-        {/* Winner name + avatar */}
+        {/* Winner name and avatar */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'12px', marginBottom:'var(--sp-8)', animation:'winnerReveal 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.15s both' }}>
           {sorted[0]?.avatar && (
             <span style={{ fontSize:'clamp(36px,6vw,52px)', lineHeight:1, filter:'drop-shadow(0 0 16px rgba(0,229,255,0.4))' }}>
@@ -140,7 +140,7 @@ export default function WinnerPage() {
           </h1>
         </div>
 
-        {/* Stats row */}
+        {/* Match stats */}
         {stats && (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'var(--sp-3)', marginBottom:'var(--sp-5)' }}>
             {[{ e:'🔄', l:'Turns', v: stats.totalTurns ?? 0 },{ e:'📝', l:'Words', v: stats.uniqueWordsUsed ?? 0 },{ e:'👥', l:'Players', v: stats.players?.length ?? 0 }].map(({ e, l, v }) => (
@@ -153,7 +153,7 @@ export default function WinnerPage() {
           </div>
         )}
 
-        {/* Standings */}
+        {/* Final standings */}
         {sorted.length > 0 && (
           <div style={{ marginBottom:'var(--sp-5)', animation:'fadeInUp 0.6s var(--ease-out-expo) 0.55s both' }}>
             <p style={{ fontSize:'10px', fontFamily:'var(--font-heading)', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:'var(--sp-3)' }}>Final Standings</p>
@@ -168,11 +168,11 @@ export default function WinnerPage() {
                     <span style={{ fontFamily:'var(--font-heading)', fontWeight:600, fontSize:'15px', color: isW ? 'var(--cyan)' : 'var(--text-primary)', flex:1, textAlign:'left', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                       {p.nickname}{isM && <span style={{ color:'var(--text-muted)', fontWeight:400, fontSize:'12px' }}> (you)</span>}
                     </span>
-                    {/* Words submitted */}
+                    {/* Submitted word count */}
                     {p.wordsSubmitted > 0 && (
                       <span style={{ fontSize:'12px', color:'var(--text-muted)', fontFamily:'var(--font-mono)', flexShrink:0 }}>{p.wordsSubmitted}w</span>
                     )}
-                    {/* Hearts */}
+                    {/* Remaining lives */}
                     <div style={{ display:'flex', gap:'2px', flexShrink:0 }}>
                       {Array.from({ length: maxLives }).map((_, li) => (
                         <span key={li} style={{ fontSize:'12px', color: li < (p.lives ?? 0) ? 'var(--red)' : 'rgba(255,255,255,0.1)' }}>♥</span>
@@ -185,7 +185,7 @@ export default function WinnerPage() {
           </div>
         )}
 
-        {/* Leaderboard image preview */}
+        {/* Share card preview */}
         {imgUrl && (
           <div style={{ marginBottom:'var(--sp-5)', animation:'fadeInUp 0.5s ease 0.7s both' }}>
             <p style={{ fontSize:'10px', fontFamily:'var(--font-heading)', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:'var(--sp-3)' }}>Result Card</p>
@@ -197,7 +197,7 @@ export default function WinnerPage() {
           </div>
         )}
 
-        {/* Rematch votes */}
+        {/* Rematch vote progress */}
         {state.rematchVotes > 0 && (
           <div style={{ marginBottom:'var(--sp-4)', padding:'10px 18px', background:'var(--green-low)', border:'1px solid var(--green-mid)', borderRadius:'var(--r-md)' }}>
             <p style={{ fontSize:'13px', color:'var(--green)', fontFamily:'var(--font-body)' }}>🔄 {state.rematchVotes} / {state.rematchRequired} players want a rematch</p>
@@ -208,7 +208,7 @@ export default function WinnerPage() {
           <p style={{ fontSize:'13px', color:'var(--green)', fontFamily:'var(--font-body)', marginBottom:'var(--sp-3)', animation:'fadeIn 0.2s ease' }}>✓ {shareMsg}</p>
         )}
 
-        {/* Actions */}
+        {/* Action buttons */}
         <div style={{ display:'flex', flexDirection:'column', gap:'var(--sp-3)', animation:'fadeInUp 0.6s var(--ease-out-expo) 0.75s both' }}>
           <Button variant={voted ? 'secondary' : 'primary'} size="lg" fullWidth onClick={handleRematch} disabled={voted}>
             {voted ? '✓ Vote cast — waiting for others…' : '🔄 Play Again (Rematch)'}

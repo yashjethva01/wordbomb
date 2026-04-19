@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3002';
 
 let socket  = null;
-// Track whether the current `connect` event is a reconnect (vs. first connect)
+// Remembers if we have connected before, so callers can detect reconnects.
 let _wasConnected = false;
 
 function getSocket() {
@@ -11,28 +11,24 @@ function getSocket() {
     socket = io(SERVER_URL, {
       autoConnect:          false,
 
-      // ── Transport ────────────────────────────────────────────────────
-      // Prefer WebSocket immediately — skip the polling upgrade dance that
-      // adds latency and can cause the extra disconnect/reconnect cycle.
+      // Transport settings.
+      // Prefer WebSocket early to reduce latency and reconnect noise.
       transports:           ['websocket', 'polling'],
       upgrade:              true,
 
-      // ── Reconnection ─────────────────────────────────────────────────
+      // Reconnect strategy.
       reconnection:         true,
       reconnectionDelay:    1500,
       reconnectionDelayMax: 8000,
       reconnectionAttempts: 20,
 
-      // ── Timeouts ─────────────────────────────────────────────────────
-      // Match server-side values so they don't fight each other.
+      // Keep timeout values aligned with server settings.
       timeout:              45000,
     });
 
-    // Track connection state so callers can distinguish first-connect from
-    // transport-reconnect inside the 'connect' event.
+    // Track whether the socket has connected at least once.
     socket.on('connect',    () => { _wasConnected = true;  });
-    socket.on('disconnect', () => { /* keep _wasConnected = true so next
-                                       connect is treated as a reconnect */ });
+    socket.on('disconnect', () => { /* Keep _wasConnected true for reconnect detection. */ });
   }
   return socket;
 }
@@ -57,8 +53,11 @@ function emit(event, payload = {}) {
 }
 
 /**
- * Register a listener on the socket.
- * Returns a cleanup function that removes it.
+ * Registers a socket event listener.
+ *
+ * @param {string} event Socket event name.
+ * @param {(payload: any) => void} handler Event callback.
+ * @returns {() => void} Cleanup function that removes the listener.
  */
 function on(event, handler) {
   getSocket().on(event, handler);
@@ -70,8 +69,12 @@ function off(event, handler) {
 }
 
 /**
- * Register a one-time listener on the socket manager.
- * Used to listen for 'reconnect' which is emitted by the Manager, not socket.
+ * Registers a manager-level event listener.
+ * Use this for events such as reconnect that are emitted by the manager.
+ *
+ * @param {string} event Manager event name.
+ * @param {(payload: any) => void} handler Event callback.
+ * @returns {() => void} Cleanup function that removes the listener.
  */
 function onManager(event, handler) {
   const mgr = getSocket().io;

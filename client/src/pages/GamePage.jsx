@@ -18,7 +18,7 @@ import EventFeed       from '../components/game/EventFeed';
 import EmojiReactions  from '../components/game/EmojiReactions';
 import SoundToggle     from '../components/ui/SoundToggle';
 
-// ── Mobile player pill — compact avatar + name + hearts ──────────────────────
+// Compact mobile player card with avatar, name, and lives.
 function MobilePlayerPill({ player, isActive, isMe, maxLives }) {
   const isOut  = player.isEliminated;
   const emoji  = getAvatarEmoji(player.avatar);
@@ -75,7 +75,7 @@ function MobilePlayerPill({ player, isActive, isMe, maxLives }) {
   );
 }
 
-// ── Mobile layout ─────────────────────────────────────────────────────────────
+// Mobile game layout.
 function MobileGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, play, toggleMute, muted }) {
   const maxLives = state.roomSettings?.lives ?? 3;
 
@@ -93,10 +93,10 @@ function MobileGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, pla
     }}>
       {state.bombExploding && <div className="screen-flash" />}
 
-      {/* ── 1. Status bar (compact) ─────────────── */}
+      {/* Top status bar */}
       <GameStatusBar compact />
 
-      {/* ── 2. Player strip (horizontal scroll) ─── */}
+      {/* Horizontal player strip */}
       <div className="player-strip glass-card" style={{ borderRadius:'var(--r-md)', padding:'5px 8px' }}>
         {state.players.map(p => (
           <MobilePlayerPill
@@ -109,7 +109,7 @@ function MobileGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, pla
         ))}
       </div>
 
-      {/* ── 3. Centre game area (flex:1) ─────────── */}
+      {/* Main game area */}
       <div style={{
         flex:           '1 1 0',
         minHeight:      '0',
@@ -134,7 +134,7 @@ function MobileGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, pla
           </div>
         )}
 
-        {/* Turn indicator */}
+        {/* Show whose turn it is */}
         {currentPlayer && !isMyTurn && (
           <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'4px 12px', borderRadius:'var(--r-full)', background:'var(--cyan-low)', border:'1px solid var(--cyan-mid)', flexShrink:0 }}>
             <span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'var(--cyan)', display:'inline-block', animation:'activeDotPulse 1.2s ease-in-out infinite', flexShrink:0 }} />
@@ -144,28 +144,28 @@ function MobileGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, pla
           </div>
         )}
 
-        {/* Bomb + timer — scaled for mobile */}
+        {/* Bomb and timer, scaled for mobile */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'16px', flexShrink:0 }}>
           <BombDisplay isActive={!!state.currentPlayerId} isMyTurn={isMyTurn} urgency={urgency} exploding={state.bombExploding} compact />
           <CircularTimer compact />
         </div>
 
-        {/* Combo */}
+        {/* Current combo prompt */}
         <SubstringPrompt combo={state.combo} isMyTurn={isMyTurn} compact />
 
-        {/* Input — bottom of center */}
+        {/* Word input at the bottom */}
         <div className="game-input-bar" style={{ width:'100%', flexShrink:0, paddingBottom:'8px' }}>
           <WordInput onPlay={play} compact />
         </div>
       </div>
 
-      {/* ── 4. Bottom safe area spacer ───────────── */}
+      {/* Bottom safe-area spacer for phones */}
       <div style={{ height:'env(safe-area-inset-bottom, 0px)', flexShrink:0 }} />
     </div>
   );
 }
 
-// ── Desktop layout (unchanged) ────────────────────────────────────────────────
+// Desktop game layout.
 function DesktopGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, play, toggleMute, muted }) {
   return (
     <div className="game-layout" style={{ position:'relative', background:'var(--bg-base)' }}>
@@ -210,7 +210,7 @@ function DesktopGame({ state, isMyTurn, isSpectating, urgency, currentPlayer, pl
   );
 }
 
-// ── Root component ────────────────────────────────────────────────────────────
+// Root page component that chooses mobile or desktop layout.
 export default function GamePage() {
   const { code }   = useParams();
   const navigate   = useNavigate();
@@ -221,7 +221,7 @@ export default function GamePage() {
   const prevTimeRef   = useRef(state.timeLeft);
   const prevExploding = useRef(false);
 
-  // Lock body scroll during gameplay
+  // Lock body scroll while the game screen is open.
   useEffect(() => {
     document.body.classList.add('game-active');
     return () => document.body.classList.remove('game-active');

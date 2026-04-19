@@ -1,7 +1,8 @@
 import { getAvatarEmoji } from './avatars';
 
 /**
- * Draw a rounded rectangle path (polyfill for ctx.roundRect).
+ * Draws a rounded rectangle path.
+ * Works as a fallback for environments without ctx.roundRect.
  */
 function rr(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -18,8 +19,9 @@ function rr(ctx, x, y, w, h, r) {
 }
 
 /**
- * Generate a premium leaderboard canvas.
- * Returns a HTMLCanvasElement.
+ * Generates the leaderboard share image.
+ *
+ * @returns {HTMLCanvasElement} Rendered leaderboard canvas.
  */
 export function generateLeaderboardCanvas(winnerId, winnerNickname, players, stats) {
   const W    = 780;
@@ -37,11 +39,11 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // ── Background ──────────────────────────────────────────────
+  // Draw the background.
   ctx.fillStyle = '#05070e';
   ctx.fillRect(0, 0, W, H);
 
-  // subtle grid lines
+  // Add a subtle grid texture.
   ctx.strokeStyle = 'rgba(255,255,255,0.025)';
   ctx.lineWidth   = 1;
   for (let x = 0; x < W; x += 40) {
@@ -51,7 +53,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
   }
 
-  // top gradient bar
+  // Add a top accent gradient.
   const topBar = ctx.createLinearGradient(0, 0, W, 0);
   topBar.addColorStop(0,   'rgba(0,229,255,0.7)');
   topBar.addColorStop(0.5, 'rgba(179,71,255,0.4)');
@@ -59,7 +61,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
   ctx.fillStyle = topBar;
   ctx.fillRect(0, 0, W, 4);
 
-  // ── Logo ─────────────────────────────────────────────────────
+  // Draw the game branding.
   ctx.font      = 'bold 14px monospace';
   ctx.fillStyle = 'rgba(234,240,255,0.28)';
   ctx.fillText('WORDBOMB.APP', 36, 40);
@@ -75,7 +77,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
   ctx.fillStyle = 'rgba(234,240,255,0.38)';
   ctx.fillText('Game Results', 36, 98);
 
-  // ── Winner hero ──────────────────────────────────────────────
+  // Draw the winner headline.
   const winnerAvatar = players.find(p => p.id === winnerId)?.avatar;
   const winnerEmoji  = winnerAvatar ? getAvatarEmoji(winnerAvatar) : '';
 
@@ -96,11 +98,11 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
     100, 185
   );
 
-  // ── Divider ───────────────────────────────────────────────────
+  // Divider line between header and table.
   ctx.fillStyle = 'rgba(255,255,255,0.07)';
   ctx.fillRect(36, 200, W - 72, 1);
 
-  // ── Column headers ────────────────────────────────────────────
+  // Table column headers.
   ctx.font      = 'bold 11px sans-serif';
   ctx.fillStyle = 'rgba(234,240,255,0.3)';
   ctx.fillText('RANK',     42,       215);
@@ -109,7 +111,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
   ctx.fillText('LIVES',    W - 130,  215);
   ctx.fillText('STATUS',   W - 66,   215);
 
-  // ── Player rows ───────────────────────────────────────────────
+  // Player result rows.
   const rankEmojis = ['🥇','🥈','🥉'];
 
   sorted.forEach((p, i) => {
@@ -120,7 +122,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
     const words  = p.wordsSubmitted ?? 0;
     const lives  = p.lives ?? 0;
 
-    // row bg
+    // Row background card.
     rr(ctx, 30, y + 2, W - 60, ROW - 6, 8);
     ctx.fillStyle = isWin
       ? 'rgba(0,229,255,0.07)'
@@ -136,12 +138,12 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
       ctx.stroke();
     }
 
-    // rank
+    // Rank badge.
     ctx.font = '20px sans-serif';
     ctx.fillStyle = '#fff';
     ctx.fillText(rankEmojis[i] ?? `#${i + 1}`, 38, y + 30);
 
-    // avatar + nickname
+    // Avatar and nickname.
     if (avatar) {
       ctx.font = '18px sans-serif';
       ctx.fillText(avatar, 95, y + 30);
@@ -153,20 +155,20 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
     ctx.fillText(p.nickname, 130, y + 30);
     ctx.shadowBlur   = 0;
 
-    // words
+    // Words submitted.
     ctx.font      = '14px monospace';
     ctx.fillStyle = 'rgba(234,240,255,0.55)';
     ctx.textAlign = 'right';
     ctx.fillText(words, W - 185, y + 30);
 
-    // lives hearts
+    // Remaining lives as hearts.
     ctx.font      = '15px sans-serif';
     const full    = '♥'.repeat(Math.max(0, lives));
     const empty   = '♡'.repeat(Math.max(0, 3 - lives));
     ctx.fillStyle = lives > 0 ? '#ff3860' : 'rgba(255,255,255,0.18)';
     ctx.fillText(full + empty, W - 110, y + 30);
 
-    // status
+    // Final status label.
     ctx.font      = '12px sans-serif';
     ctx.fillStyle = isWin
       ? '#ffc040'
@@ -178,7 +180,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
     ctx.textAlign = 'left';
   });
 
-  // ── Footer ────────────────────────────────────────────────────
+  // Footer line and text.
   ctx.fillStyle = 'rgba(255,255,255,0.07)';
   ctx.fillRect(36, H - 44, W - 72, 1);
 
@@ -192,7 +194,7 @@ export function generateLeaderboardCanvas(winnerId, winnerNickname, players, sta
 }
 
 /**
- * Download the canvas as a PNG.
+ * Downloads a canvas as a PNG file.
  */
 export function downloadCanvas(canvas, filename = 'wordbomb-results.png') {
   canvas.toBlob(blob => {
@@ -206,8 +208,10 @@ export function downloadCanvas(canvas, filename = 'wordbomb-results.png') {
 }
 
 /**
- * Share the canvas via Web Share API with file + text.
- * Returns 'shared' | 'downloaded' | 'failed'.
+ * Shares the canvas through the Web Share API.
+ * Falls back to download when share is unavailable.
+ *
+ * @returns {Promise<'shared'|'downloaded'|'failed'>} Share result.
  */
 export async function shareCanvas(canvas, text) {
   return new Promise(resolve => {
@@ -218,9 +222,9 @@ export async function shareCanvas(canvas, text) {
           await navigator.share({ title: 'WordBomb 💣', text, files: [file] });
           resolve('shared');
           return;
-        } catch (_) { /* user cancelled or not supported */ }
+        } catch (_) { /* User cancelled or share is unsupported. */ }
       }
-      // fallback: download
+      // Fallback to file download.
       downloadCanvas(canvas);
       resolve('downloaded');
     }, 'image/png');

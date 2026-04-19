@@ -1,13 +1,13 @@
 import { AVATARS } from '../../utils/avatars';
 
 /**
- * AvatarPicker — grid of selectable emoji avatars.
+ * Renders a selectable grid of emoji avatars.
  *
- * Props:
- *   selected    {string}   current avatar id
- *   takenIds    {string[]} avatar ids already taken in the room
- *   onSelect    {fn}       (id) => void
- *   error       {string}   optional error message
+ * @param {Object} props Component props.
+ * @param {string} props.selected Currently selected avatar id.
+ * @param {string[]} [props.takenIds] Avatar ids already used in the room.
+ * @param {(id: string) => void} props.onSelect Called when user picks an avatar.
+ * @param {string} [props.error] Optional validation message.
  */
 export default function AvatarPicker({ selected, takenIds = [], onSelect, error }) {
   return (

@@ -1,7 +1,9 @@
 /**
- * Button — single source of truth for all interactive buttons.
- * variants: 'primary' | 'secondary' | 'danger' | 'ghost'
- * sizes:    'sm' | 'md' | 'lg'
+ * Reusable button used across the app.
+ *
+ * @param {Object} props Component props.
+ * @param {'primary'|'secondary'|'danger'|'ghost'} [props.variant] Button visual style.
+ * @param {'sm'|'md'|'lg'} [props.size] Button size preset.
  */
 export default function Button({
   children, variant = 'primary', size = 'md',

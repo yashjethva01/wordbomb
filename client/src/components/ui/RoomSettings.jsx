@@ -1,6 +1,5 @@
 /**
- * RoomSettings — pill-button selector groups for room creation.
- * No native <select> elements — uses button groups for premium feel.
+ * Renders grouped pill buttons used to configure room settings.
  */
 
 function PillGroup({ label, options, value, onChange }) {

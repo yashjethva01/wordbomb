@@ -30,21 +30,24 @@ class ComboGenerator {
   }
 
   /**
+    * Generates the next combo based on room difficulty and turn count.
+    *
    * @param {number} turnsCompleted
    * @param {string|null} lastCombo
-   * @param {'easy'|'medium'|'hard'} difficulty - room difficulty setting
+    * @param {'easy'|'medium'|'hard'} difficulty Room difficulty setting.
+    * @returns {string} Next combo token.
    */
   generate(turnsCompleted = 0, lastCombo = null, difficulty = 'medium') {
     let pool;
 
     if (difficulty === 'easy') {
-      // Always from easy pool regardless of turns
+      // Easy mode always uses easy combos.
       pool = this.pools.easy;
     } else if (difficulty === 'hard') {
-      // Start with medium+hard immediately
+      // Hard mode can pick from all combo pools immediately.
       pool = [...this.pools.easy, ...this.pools.medium, ...this.pools.hard];
     } else {
-      // Medium: scale naturally with turns completed
+      // Medium mode scales difficulty as turns increase.
       if (turnsCompleted >= DIFFICULTY_HARD_THRESHOLD) {
         pool = [...this.pools.easy, ...this.pools.medium, ...this.pools.hard];
       } else if (turnsCompleted >= DIFFICULTY_MEDIUM_THRESHOLD) {
