@@ -1,0 +1,21 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WordBomb icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14213d"/>
+      <stop offset="100%" stop-color="#1d3557"/>
+    </linearGradient>
+    <radialGradient id="bomb" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#7fd3ff"/>
+      <stop offset="100%" stop-color="#2a9d8f"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <circle cx="128" cy="144" r="70" fill="url(#bomb)"/>
+  <rect x="115" y="58" width="26" height="32" rx="8" fill="#f4a261"/>
+  <path d="M141 64c24-28 50-15 54 5" stroke="#ffb703" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <circle cx="199" cy="70" r="10" fill="#ffd166"/>
+  <circle cx="103" cy="135" r="8" fill="#0b2545"/>
+  <circle cx="153" cy="135" r="8" fill="#0b2545"/>
+  <path d="M96 166c10 14 22 20 32 20s22-6 32-20" stroke="#0b2545" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <text x="128" y="242" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#eaf2ff">WB</text>
+</svg>
