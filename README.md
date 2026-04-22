@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/media/logo.png" alt="WordBomb logo" width="520" />
+  <img src="docs/media/logo.png" alt="WordBomb logo" width="200" />
 </p>
 
 <h1 align="center">WordBomb</h1>
